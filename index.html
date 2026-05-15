@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home IoT Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="toast-container"></div>
+    
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="glass-panel">
+            <div class="header-content">
+                <div class="header-titles">
+                    <div class="header-titles-text">
+                        <h1>Smart Home Center</h1>
+                        <p class="subtitle">ESP32 & Telegram Integration</p>
+                    </div>
+                </div>
+                <div class="status-indicators">
+                    <div class="status-badge" id="esp-status">
+                        <span class="dot"></span> ESP32 <span class="status-text">(Wait)</span>
+                    </div>
+                    <div class="status-badge" id="tg-status">
+                        <span class="dot"></span> Telegram <span class="status-text">(Wait)</span>
+                    </div>
+                    <div class="clock" id="realtime-clock">00:00:00</div>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-grid">
+            <!-- Sensors Overview -->
+            <section class="glass-panel card sensor-card">
+                <div class="card-header">
+                    <h2>🌡️ Environment</h2>
+                    <span class="pin-badge">DHT11 (Pin 4)</span>
+                </div>
+                <div class="sensor-readings">
+                    <div class="reading">
+                        <div class="reading-value"><span id="temp-val">--</span><span class="unit">°C</span></div>
+                        <div class="reading-label">Temperature</div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="reading">
+                        <div class="reading-value"><span id="hum-val">--</span><span class="unit">%</span></div>
+                        <div class="reading-label">Humidity</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chart -->
+            <section class="glass-panel card chart-card">
+                <h2>Realtime Sensor Data</h2>
+                <div class="chart-container">
+                    <canvas id="dhtChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Relays Control -->
+            <section class="glass-panel card relays-card">
+                <h2>⚡ Device Management</h2>
+                <div class="relays-grid">
+                    <div class="relay-item" data-id="1">
+                        <div class="relay-info">
+                            <span class="relay-name">Relay 1</span>
+                            <span class="relay-pin">Pin 5</span>
+                        </div>
+                        <button class="toggle-switch" onclick="toggleRelay('1')" id="btn-relay-1">
+                            <div class="slider"></div>
+                        </button>
+                    </div>
+                    
+                    <div class="relay-item" data-id="2">
+                        <div class="relay-info">
+                            <span class="relay-name">Relay 2</span>
+                            <span class="relay-pin">Pin 19</span>
+                        </div>
+                        <button class="toggle-switch" onclick="toggleRelay('2')" id="btn-relay-2">
+                            <div class="slider"></div>
+                        </button>
+                    </div>
+
+                    <div class="relay-item" data-id="3">
+                        <div class="relay-info">
+                            <span class="relay-name">Relay 3</span>
+                            <span class="relay-pin">Pin 18</span>
+                        </div>
+                        <button class="toggle-switch" onclick="toggleRelay('3')" id="btn-relay-3">
+                            <div class="slider"></div>
+                        </button>
+                    </div>
+
+                    <div class="relay-item" data-id="4">
+                        <div class="relay-info">
+                            <span class="relay-name">Relay 4</span>
+                            <span class="relay-pin">Pin 23</span>
+                        </div>
+                        <button class="toggle-switch" onclick="toggleRelay('4')" id="btn-relay-4">
+                            <div class="slider"></div>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Telegram Logs -->
+            <section class="glass-panel card logs-card">
+                <h2>📱 Telegram Activity Logs</h2>
+                <div class="logs-container" id="logs-container">
+                    <div class="empty-logs">No activity recorded yet.</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

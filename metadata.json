@@ -1,0 +1,6 @@
+{
+  "name": "Smart Home IoT Dashboard",
+  "description": "A modern, glassmorphism IoT dashboard for ESP32 and Telegram bot, ready for Vercel deployment.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/dht", "destination": "/api/index.ts" },
+    { "source": "/dht/history", "destination": "/api/index.ts" },
+    { "source": "/relay/:path*", "destination": "/api/index.ts" },
+    { "source": "/status", "destination": "/api/index.ts" },
+    { "source": "/logs", "destination": "/api/index.ts" },
+    { "source": "/esp-sync", "destination": "/api/index.ts" }
+  ]
+}
