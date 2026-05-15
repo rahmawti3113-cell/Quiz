@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 
 const app = express();
@@ -12,7 +13,8 @@ let lastEspHeartbeat = Date.now();
 
 // Utility for Telegram Messaging
 async function sendTelegramMessage(text: string) {
-  const { BOT_TOKEN, CHAT_ID } = process.env;
+  const BOT_TOKEN = process.env.BOT_TOKEN || "8600195986:AAEGh2spkUC8dOOvY0Pd9mN_Up8gEvhjUMQ";
+  const CHAT_ID = process.env.CHAT_ID || "8789392801";
   if (!BOT_TOKEN || !CHAT_ID) {
     logs.unshift({ time: new Date().toISOString(), message: "Telegram not configured, message skipped.", type: "system" });
     return;
@@ -63,7 +65,8 @@ app.get('/full-state', (req, res) => {
   };
 
   const espoOnline = (Date.now() - lastEspHeartbeat) < 15000;
-  const { BOT_TOKEN, CHAT_ID } = process.env;
+  const BOT_TOKEN = process.env.BOT_TOKEN || "8600195986:AAEGh2spkUC8dOOvY0Pd9mN_Up8gEvhjUMQ";
+  const CHAT_ID = process.env.CHAT_ID || "8789392801";
 
   res.json({
     dht: formattedData,

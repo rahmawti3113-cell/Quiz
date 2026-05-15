@@ -113,8 +113,6 @@ function updateSensors(data) {
 }
 
 function renderLogs(logs) {
-    if (logs.length === 0) return;
-    
     logsContainer.innerHTML = '';
     logs.forEach(log => {
         const div = document.createElement('div');
