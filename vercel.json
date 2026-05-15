@@ -1,6 +1,7 @@
 {
   "version": 2,
   "rewrites": [
+    { "source": "/full-state", "destination": "/api/index.ts" },
     { "source": "/dht", "destination": "/api/index.ts" },
     { "source": "/dht/history", "destination": "/api/index.ts" },
     { "source": "/relay/:path*", "destination": "/api/index.ts" },

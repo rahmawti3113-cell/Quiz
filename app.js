@@ -165,37 +165,36 @@ function updateStatusUI(status) {
 }
 
 // API Calls
-async function fetchSensorData() {
+let consecutiveErrors = 0;
+
+async function fetchFullState() {
     const loader = document.getElementById('sensor-loading');
     if (elTemp && (!elTemp.textContent || elTemp.textContent === '--')) loader?.classList.add('active');
     try {
-        const res = await fetch('/dht');
+        const res = await fetch('/full-state');
         if (res.ok) {
+            consecutiveErrors = 0; // Reset on success
             const data = await res.json();
-            updateSensors(data);
+            
+            // Hydrate all parts of UI
+            updateSensors(data.dht);
+            updateStatusUI(data.status);
+            renderLogs(data.logs);
+            updateChart(data.history);
+        } else {
+            console.error("HTTP Error:", res.status);
         }
     } catch (err) {
-        console.error("Failed to fetch sensor data:", err);
-        showToast("Fetch Error: " + (err instanceof Error ? err.message : String(err)));
+        consecutiveErrors++;
+        console.error("Failed to fetch full state:", err);
+        // Only show toast if it's consistently failing, avoiding spam.
+        if (consecutiveErrors === 1) {
+            showToast("Connection to server lost. Retrying...");
+        } else if (consecutiveErrors % 10 === 0) { // Remind them every 10th failure
+            showToast("Still trying to reconnect...");
+        }
     } finally {
         loader?.classList.remove('active');
-    }
-}
-
-async function fetchStatusAndLogs() {
-    try {
-        const [statusRes, logsRes, histRes] = await Promise.all([
-            fetch('/status').then(r => r.json()),
-            fetch('/logs').then(r => r.json()),
-            fetch('/dht/history').then(r => r.json())
-        ]);
-        
-        updateStatusUI(statusRes);
-        renderLogs(logsRes);
-        updateChart(histRes);
-    } catch (err) {
-        console.error("Failed to sync backend state:", err);
-        showToast("Sync Error: " + (err instanceof Error ? err.message : String(err)));
     }
 }
 
@@ -214,7 +213,7 @@ window.toggleRelay = async function(id) {
         const data = await res.json();
         if (data.success) {
             showToast(`Relay ${id} turned ${newState.toUpperCase()}`);
-            fetchStatusAndLogs(); // Refresh logs immediately
+            fetchFullState(); // Refresh immediately after interaction
         } else {
             throw new Error('Failed');
         }
@@ -231,10 +230,8 @@ window.addEventListener('DOMContentLoaded', () => {
     initChart();
     
     // Initial fetch
-    fetchSensorData();
-    fetchStatusAndLogs();
+    fetchFullState();
 
-    // Polling loops
-    setInterval(fetchSensorData, 2000); // Poll temp fast
-    setInterval(fetchStatusAndLogs, 5000); // Poll logs and history slightly slower
+    // Single polling loop (gentler on reverse proxies, ~5000ms is standard)
+    setInterval(fetchFullState, 5000); 
 });

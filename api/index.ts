@@ -56,6 +56,27 @@ app.get('/esp-sync', (req, res) => {
 });
 
 // APIs
+app.get('/full-state', (req, res) => {
+  const formattedData = {
+    temp: Number(sensorData.temp.toFixed(1)),
+    hum: Number(sensorData.hum.toFixed(1))
+  };
+
+  const espoOnline = (Date.now() - lastEspHeartbeat) < 15000;
+  const { BOT_TOKEN, CHAT_ID } = process.env;
+
+  res.json({
+    dht: formattedData,
+    history: history,
+    status: {
+      esp32_online: espoOnline,
+      telegram_configured: !!(BOT_TOKEN && CHAT_ID),
+      relays: relays
+    },
+    logs: logs
+  });
+});
+
 app.get('/dht', (req, res) => {
   const formattedData = {
     temp: Number(sensorData.temp.toFixed(1)),
