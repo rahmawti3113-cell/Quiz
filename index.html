@@ -114,6 +114,54 @@
                 </div>
             </section>
 
+            <!-- Variasi Relay -->
+            <section class="glass-panel card relays-card">
+                <div class="card-header" style="margin-bottom: 20px;">
+                    <h2 style="margin: 0;">✨ Variasi Relay</h2>
+                </div>
+                <div class="relays-grid">
+                    <div class="relay-item">
+                        <div class="relay-info">
+                            <span class="relay-name">Seq A</span>
+                            <span class="relay-pin">1, 2, 3, 4</span>
+                        </div>
+                        <button class="toggle-switch" onclick="toggleSequence('1234', ['1','2','3','4'])" id="btn-seq-1234">
+                            <div class="slider"></div>
+                        </button>
+                    </div>
+                    
+                    <div class="relay-item">
+                        <div class="relay-info">
+                            <span class="relay-name">Seq B</span>
+                            <span class="relay-pin">4, 3, 2, 1</span>
+                        </div>
+                        <button class="toggle-switch" onclick="toggleSequence('4321', ['4','3','2','1'])" id="btn-seq-4321">
+                            <div class="slider"></div>
+                        </button>
+                    </div>
+
+                    <div class="relay-item">
+                        <div class="relay-info">
+                            <span class="relay-name">Seq C</span>
+                            <span class="relay-pin">1, 3, 2, 4</span>
+                        </div>
+                        <button class="toggle-switch" onclick="toggleSequence('1324', ['1','3','2','4'])" id="btn-seq-1324">
+                            <div class="slider"></div>
+                        </button>
+                    </div>
+
+                    <div class="relay-item">
+                        <div class="relay-info">
+                            <span class="relay-name">Seq D</span>
+                            <span class="relay-pin">4, 2, 3, 1</span>
+                        </div>
+                        <button class="toggle-switch" onclick="toggleSequence('4231', ['4','2','3','1'])" id="btn-seq-4231">
+                            <div class="slider"></div>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Telegram Logs -->
             <section class="glass-panel card logs-card">
                 <h2>📱 Telegram Activity Logs</h2>

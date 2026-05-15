@@ -366,3 +366,22 @@ window.toggleRelayVoice = async function(id, newState) {
         if (isCurrentlyActive && newState === 'off') btn.classList.add('active');
     }
 }
+
+window.toggleSequence = function(seqId, sequenceIds) {
+    const btn = document.getElementById(`btn-seq-${seqId}`);
+    const isCurrentlyOn = btn.classList.contains('active');
+    
+    if (!isCurrentlyOn) {
+        btn.classList.add('active');
+        // Turn off other sequence buttons to avoid confusion
+        document.querySelectorAll('button[id^="btn-seq-"]').forEach(el => {
+            if (el.id !== `btn-seq-${seqId}`) el.classList.remove('active');
+        });
+        // Run sequence on
+        sequenceRelays(sequenceIds, 'on', 800);
+    } else {
+        btn.classList.remove('active');
+        // Run sequence off rapidly
+        sequenceRelays(['1','2','3','4'], 'off', 300);
+    }
+}
