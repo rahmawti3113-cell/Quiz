@@ -64,7 +64,13 @@
 
             <!-- Relays Control -->
             <section class="glass-panel card relays-card">
-                <h2>⚡ Device Management</h2>
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">⚡ Device Management</h2>
+                    <button id="btn-voice" class="voice-btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 44px; height: 44px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.3s; color: white; font-size: 1.2rem;" title="Voice Assistant">
+                        🎤
+                    </button>
+                </div>
+                <div id="voice-status" style="margin-bottom: 20px; font-size: 0.9rem; color: #94a3b8; display: none; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border-left: 3px solid #3b82f6;">🎙️ Mendengarkan... Coba: "nyalakan relay 1", "matikan relay 2", "relay nyala bergiliran"</div>
                 <div class="relays-grid">
                     <div class="relay-item" data-id="1">
                         <div class="relay-info">

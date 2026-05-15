@@ -233,3 +233,136 @@ window.addEventListener('DOMContentLoaded', () => {
     // Single polling loop (gentler on reverse proxies, ~5000ms is standard)
     setInterval(fetchFullState, 5000); 
 });
+
+// Voice Control
+const btnVoice = document.getElementById('btn-voice');
+const voiceStatus = document.getElementById('voice-status');
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition && btnVoice) {
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'id-ID';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    let isListening = false;
+
+    btnVoice.addEventListener('click', () => {
+        if (isListening) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
+    });
+
+    recognition.onstart = () => {
+        isListening = true;
+        btnVoice.style.background = 'rgba(239, 68, 68, 0.4)';
+        btnVoice.style.borderColor = '#ef4444';
+        voiceStatus.style.display = 'block';
+        voiceStatus.innerHTML = '🎙️ Mendengarkan... Coba: "nyalakan relay 1", "matikan semua", "nyala bergiliran"';
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.toLowerCase();
+        voiceStatus.innerHTML = `🗣️ Anda berkata: "<b>${transcript}</b>"`;
+        
+        handleVoiceCommand(transcript);
+        
+        setTimeout(() => {
+            voiceStatus.style.display = 'none';
+        }, 5000);
+    };
+
+    recognition.onspeechend = () => {
+        recognition.stop();
+    };
+
+    recognition.onend = () => {
+        isListening = false;
+        btnVoice.style.background = 'rgba(255,255,255,0.1)';
+        btnVoice.style.borderColor = 'rgba(255,255,255,0.2)';
+    };
+
+    recognition.onerror = (event) => {
+        voiceStatus.innerHTML = `❌ Error: ${event.error}`;
+        setTimeout(() => {
+            voiceStatus.style.display = 'none';
+        }, 3000);
+    };
+} else if (btnVoice) {
+    btnVoice.style.display = 'none';
+    console.warn("Speech Recognition API not supported in this browser.");
+}
+
+async function handleVoiceCommand(command) {
+    if (command.includes('bergiliran') || command.includes('beruntun')) {
+        sequenceRelays(['1', '2', '3', '4'], 'on', 1000);
+        return;
+    }
+    
+    if (command.includes('matikan semua') || command.includes('mati semua')) {
+        sequenceRelays(['1', '2', '3', '4'], 'off', 500);
+        return;
+    }
+
+    if (command.includes('hidupkan semua') || command.includes('nyalakan semua')) {
+        sequenceRelays(['1', '2', '3', '4'], 'on', 500);
+        return;
+    }
+
+    const relayMatch = command.match(/relay\s*(\d)/);
+    if (!relayMatch) {
+         showToast("Perintah tidak dikenali");
+         return;
+    }
+    
+    const id = relayMatch[1];
+    if (!['1', '2', '3', '4'].includes(id)) {
+        showToast("Relay tidak ditemukan");
+        return;
+    }
+
+    const isTurnOn = command.includes('nyala') || command.includes('hidup') || command.includes('on') || command.includes('aktifkan');
+    const isTurnOff = command.includes('mati') || command.includes('off') || command.includes('nonaktifkan');
+
+    if (isTurnOn) {
+        window.toggleRelayVoice(id, 'on');
+    } else if (isTurnOff) {
+        window.toggleRelayVoice(id, 'off');
+    } else {
+        showToast("Sebutkan untuk menyalakan atau mematikan.");
+    }
+}
+
+async function sequenceRelays(ids, state, delay) {
+    showToast(`Relay akan ${state === 'on' ? 'menyala' : 'mati'} bergiliran...`);
+    for (let i = 0; i < ids.length; i++) {
+        setTimeout(async () => {
+            await window.toggleRelayVoice(ids[i], state);
+        }, i * delay);
+    }
+}
+
+window.toggleRelayVoice = async function(id, newState) {
+    const btn = document.getElementById(`btn-relay-${id}`);
+    
+    if (newState === 'on') btn.classList.add('active');
+    else btn.classList.remove('active');
+
+    try {
+        const res = await fetch(`/relay/${id}/${newState}`);
+        const data = await res.json();
+        if (data.success) {
+            showToast(`Relay ${id} -> ${newState.toUpperCase()}`);
+            fetchFullState();
+        }
+    } catch (error) {
+        console.error("Error toggling relay via voice", id, error);
+        // revert
+        const isCurrentlyActive = document.getElementById(`btn-relay-${id}`).classList.contains('active');
+        if (!isCurrentlyActive && newState === 'on') btn.classList.remove('active');
+        if (isCurrentlyActive && newState === 'off') btn.classList.add('active');
+    }
+}

@@ -169,6 +169,15 @@ h2 {
   flex-direction: column;
 }
 
+/* Voice Control */
+.voice-btn:hover {
+  background: rgba(255,255,255,0.2) !important;
+  transform: scale(1.05);
+}
+.voice-btn:active {
+  transform: scale(0.95);
+}
+
 /* Sensor Typography */
 .card-header {
   display: flex;
