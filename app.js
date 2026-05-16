@@ -346,14 +346,21 @@ async function handleVoiceCommand(command) {
 
 async function sequenceRelays(ids, state, delay) {
     showToast(`Relay akan ${state === 'on' ? 'menyala' : 'mati'} bergiliran...`);
+    
+    fetch('/api/notify', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ message: `🔄 Semua Relay ${state === 'on' ? 'diaktifkan' : 'dimatikan'} bergiliran.` })
+    }).catch(()=>console.log("Variasi notify failed"));
+
     for (let i = 0; i < ids.length; i++) {
         setTimeout(async () => {
-            await window.toggleRelayVoice(ids[i], state);
+            await window.toggleRelayVoice(ids[i], state, false);
         }, i * delay);
     }
 }
 
-window.toggleRelayVoice = async function(id, newState) {
+window.toggleRelayVoice = async function(id, newState, notify = true) {
     const btn = document.getElementById(`btn-relay-${id}`);
     
     if (newState === 'on') btn.classList.add('active');
@@ -361,14 +368,14 @@ window.toggleRelayVoice = async function(id, newState) {
 
     try {
         fetch(`http://10.73.146.59/relay/${id}/${newState}`, { mode: 'no-cors' }).catch(e => console.debug("Direct IP fetch failed (expected if not on same network):", e));
-        const res = await fetch(`/relay/${id}/${newState}`);
+        const res = await fetch(`/relay/${id}/${newState}?notify=${notify}`);
         const contentType = res.headers.get("content-type");
         if (!res.ok || !contentType || contentType.indexOf("application/json") === -1) {
             throw new Error('Failed or non-JSON response');
         }
         const data = await res.json();
         if (data.success) {
-            showToast(`Relay ${id} -> ${newState.toUpperCase()}`);
+            if (notify) showToast(`Relay ${id} -> ${newState.toUpperCase()}`);
             fetchFullState();
         }
     } catch (error) {
@@ -380,18 +387,14 @@ window.toggleRelayVoice = async function(id, newState) {
     }
 }
 
-let currentSequenceInterval = null;
+let sequenceRunning = false;
 
-window.toggleSequence = function(seqId, sequenceIds) {
+window.toggleSequence = async function(seqId, sequenceIds) {
     const btn = document.getElementById(`btn-seq-${seqId}`);
     const isCurrentlyOn = btn.classList.contains('active');
     
-    // Hentikan interval sequence yang sedang berjalan (jika ada)
-    if (currentSequenceInterval) {
-        clearInterval(currentSequenceInterval);
-        currentSequenceInterval = null;
-    }
-
+    sequenceRunning = false; // Stop any existing loop
+    
     if (!isCurrentlyOn) {
         btn.classList.add('active');
         // Turn off other sequence buttons to avoid confusion
@@ -399,24 +402,44 @@ window.toggleSequence = function(seqId, sequenceIds) {
             if (el.id !== `btn-seq-${seqId}`) el.classList.remove('active');
         });
         
+        sequenceRunning = true;
+        showToast("Sequence " + seqId + " dimulai...");
+        fetch('/api/notify', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ message: "🔄 Variasi/Sequence " + seqId + " diaktifkan." })
+        }).catch(()=>console.log("Variasi notify failed"));
+        
         let currentIndex = 0;
-        showToast("Sequence loop dimulai...");
         
-        // Memulai perputaran (chasing effect) pertama di luar interval
-        window.toggleRelayVoice(sequenceIds[0], 'on');
-        currentIndex = 1;
-        
-        currentSequenceInterval = setInterval(() => {
-            let prevIndex = currentIndex === 0 ? sequenceIds.length - 1 : currentIndex - 1;
-            window.toggleRelayVoice(sequenceIds[prevIndex], 'off');
-            window.toggleRelayVoice(sequenceIds[currentIndex], 'on');
-            
-            currentIndex = (currentIndex + 1) % sequenceIds.length;
-        }, 800);
+        (async function sequenceLoop() {
+            while (sequenceRunning) {
+                let prevIndex = currentIndex === 0 ? sequenceIds.length - 1 : currentIndex - 1;
+                
+                await window.toggleRelayVoice(sequenceIds[prevIndex], 'off', false);
+                if (!sequenceRunning) break;
+                await window.toggleRelayVoice(sequenceIds[currentIndex], 'on', false);
+                if (!sequenceRunning) break;
+                
+                currentIndex = (currentIndex + 1) % sequenceIds.length;
+                await new Promise(r => setTimeout(r, 400));
+            }
+        })();
         
     } else {
         btn.classList.remove('active');
-        // Run sequence off rapidly
-        sequenceRelays(['1','2','3','4'], 'off', 300);
+        sequenceRunning = false;
+        
+        showToast("Sequence dihentikan.");
+        fetch('/api/notify', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ message: "⏹️ Variasi/Sequence dihentikan." })
+        }).catch(()=>console.log("Variasi notify failed"));
+        
+        for (let i = 0; i < 4; i++) {
+             await window.toggleRelayVoice((i+1).toString(), 'off', false);
+             await new Promise(r => setTimeout(r, 200));
+        }
     }
 }

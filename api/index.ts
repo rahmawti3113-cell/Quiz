@@ -106,6 +106,7 @@ app.get('/relay/:id/:state', async (req, res) => {
     return;
   }
 
+  const notify = req.query.notify !== 'false';
   const isTurningOn = state === 'on';
   relays[id] = isTurningOn;
   lastEspHeartbeat = Date.now(); // Interaction implies connection
@@ -121,9 +122,11 @@ app.get('/relay/:id/:state', async (req, res) => {
   }
 
   const pin = pinMapping[id];
-  const message = `\uD83D\uDD0C Relay ${id} (Pin ${pin}) was turned ${state.toUpperCase()}`;
   
-  await sendTelegramMessage(message);
+  if (notify) {
+    const message = `\uD83D\uDD0C Relay ${id} (Pin ${pin}) was turned ${state.toUpperCase()}`;
+    await sendTelegramMessage(message);
+  }
 
   res.json({
     success: true,
@@ -132,6 +135,13 @@ app.get('/relay/:id/:state', async (req, res) => {
     state: isTurningOn,
     relays_status: relays
   });
+});
+
+app.post('/api/notify', express.json(), async (req, res) => {
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ error: "No message provided" });
+  await sendTelegramMessage(message);
+  res.json({ success: true });
 });
 
 app.get('/status', (req, res) => {
