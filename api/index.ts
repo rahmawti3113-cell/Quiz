@@ -106,6 +106,16 @@ app.get('/relay/:id/:state', async (req, res) => {
   relays[id] = isTurningOn;
   lastEspHeartbeat = Date.now(); // Interaction implies connection
 
+  // Try to push command directly to ESP if an IP is configured
+  if (process.env.ESP_IP) {
+    try {
+      // Timeout added so it doesn't block if ESP is offline or on a private network relative to the server
+      await fetch(`http://${process.env.ESP_IP}/relay/${id}/${state}`, { signal: AbortSignal.timeout(2000) });
+    } catch (err) {
+      console.log("Failed to ping ESP directly:", err);
+    }
+  }
+
   const pin = pinMapping[id];
   const message = `\uD83D\uDD0C Relay ${id} (Pin ${pin}) was turned ${state.toUpperCase()}`;
   

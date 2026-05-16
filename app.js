@@ -170,7 +170,8 @@ async function fetchFullState() {
     if (elTemp && (!elTemp.textContent || elTemp.textContent === '--')) loader?.classList.add('active');
     try {
         const res = await fetch('/full-state');
-        if (res.ok) {
+        const contentType = res.headers.get("content-type");
+        if (res.ok && contentType && contentType.indexOf("application/json") !== -1) {
             consecutiveErrors = 0; // Reset on success
             const data = await res.json();
             
@@ -179,6 +180,8 @@ async function fetchFullState() {
             updateStatusUI(data.status);
             renderLogs(data.logs);
             updateChart(data.history);
+        } else if (res.ok) {
+            throw new Error("Received non-JSON response from server.");
         } else {
             console.error("HTTP Error:", res.status);
         }
@@ -207,7 +210,12 @@ window.toggleRelay = async function(id) {
     else btn.classList.remove('active');
 
     try {
+        fetch(`http://10.73.146.59/relay/${id}/${newState}`, { mode: 'no-cors' }).catch(e => console.debug("Direct IP fetch failed (expected if not on same network):", e));
         const res = await fetch(`/relay/${id}/${newState}`);
+        const contentType = res.headers.get("content-type");
+        if (!res.ok || !contentType || contentType.indexOf("application/json") === -1) {
+            throw new Error('Failed or non-JSON response');
+        }
         const data = await res.json();
         if (data.success) {
             showToast(`Relay ${id} turned ${newState.toUpperCase()}`);
@@ -352,7 +360,12 @@ window.toggleRelayVoice = async function(id, newState) {
     else btn.classList.remove('active');
 
     try {
+        fetch(`http://10.73.146.59/relay/${id}/${newState}`, { mode: 'no-cors' }).catch(e => console.debug("Direct IP fetch failed (expected if not on same network):", e));
         const res = await fetch(`/relay/${id}/${newState}`);
+        const contentType = res.headers.get("content-type");
+        if (!res.ok || !contentType || contentType.indexOf("application/json") === -1) {
+            throw new Error('Failed or non-JSON response');
+        }
         const data = await res.json();
         if (data.success) {
             showToast(`Relay ${id} -> ${newState.toUpperCase()}`);
